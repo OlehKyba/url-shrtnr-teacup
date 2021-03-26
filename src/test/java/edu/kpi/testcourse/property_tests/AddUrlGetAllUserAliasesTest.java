@@ -1,5 +1,8 @@
 package edu.kpi.testcourse.property_tests;
 
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import javax.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.quicktheories.core.Gen;
 import static org.quicktheories.QuickTheory.qt;
 import static org.quicktheories.generators.SourceDSL.strings;
@@ -8,19 +11,19 @@ import edu.kpi.testcourse.dataservice.UrlAlias;
 import edu.kpi.testcourse.dataservice.User;
 import edu.kpi.testcourse.urlservice.AliasInfo;
 import edu.kpi.testcourse.urlservice.UrlService;
-import io.micronaut.context.BeanContext;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+@MicronautTest
 public class AddUrlGetAllUserAliasesTest {
-  static DataService dataService = BeanContext.run().getBean(DataService.class);
-  static UrlService urlService = BeanContext.run().getBean(UrlService.class);
+
+  @Inject DataService dataService;
+  @Inject UrlService urlService;
 
   static Gen<String> aliases = strings().basicLatinAlphabet().ofLengthBetween(1, 10);
   static Gen<String> urls = strings().basicLatinAlphabet().ofLengthBetween(1, 10);
 
-  @BeforeAll
-  static void beforeAll() {
+  @BeforeEach
+  void prepare() {
     dataService.clear();
     dataService.addUser(new User("vasya", "pupkin"));
   }
