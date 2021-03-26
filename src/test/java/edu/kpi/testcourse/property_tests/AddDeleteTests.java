@@ -4,26 +4,25 @@ import edu.kpi.testcourse.dataservice.DataService;
 import edu.kpi.testcourse.dataservice.UrlAlias;
 import edu.kpi.testcourse.dataservice.User;
 import edu.kpi.testcourse.urlservice.UrlService;
-import io.micronaut.context.BeanContext;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import javax.inject.Inject;
 
 import static org.quicktheories.QuickTheory.qt;
 import static org.quicktheories.generators.SourceDSL.strings;
 
+@MicronautTest
 public class AddDeleteTests {
 
-  static DataService dataService = BeanContext.run().getBean(DataService.class);
-  static UrlService urlService = BeanContext.run().getBean(UrlService.class);
-
-  @BeforeAll
-  static void beforeAll() {
-    dataService.clear();
-    dataService.addUser(new User("aaa@bbb.com", "aaabbbccc"));
-  }
+  @Inject DataService dataService;
+  @Inject UrlService urlService;
 
   @Test
   void testUrlServiceAddUrlDeleteAlias_propertyBased(){
+    dataService.clear();
+    dataService.addUser(new User("aaa@bbb.com", "aaabbbccc"));
     qt()
       .forAll (
         strings().basicLatinAlphabet().ofLengthBetween(1, 29), //alias
@@ -37,6 +36,8 @@ public class AddDeleteTests {
 
   @Test
   void testDataServiceAddUrlAliasDeleteUrlAlias_propertyBased() {
+    dataService.clear();
+    dataService.addUser(new User("aaa@bbb.com", "aaabbbccc"));
     qt()
       .forAll (
         strings().basicLatinAlphabet().ofLengthBetween(1, 29), //alias
@@ -49,3 +50,4 @@ public class AddDeleteTests {
   }
 
 }
+
