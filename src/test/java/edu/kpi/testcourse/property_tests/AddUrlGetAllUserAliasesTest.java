@@ -36,14 +36,14 @@ public class AddUrlGetAllUserAliasesTest {
         urls
       ).check((alias, url) -> {
         url = url.concat(".com");
-        urlService.addUrl(alias, url, "vasya");
+        assert(urlService.addUrl(alias, url, "vasya"));
         var allUserAliases = urlService.getUserAliases("vasya");
+        assert(allUserAliases.size() != 0);
         for (AliasInfo urlAlias : allUserAliases) {
           if (!urlAlias.alias().equals(alias) || !urlAlias.url().equals(url)) {
             return false;
           }
         }
-        urlService.deleteAlias(alias, "vasya");
         return true;
     });
   }
@@ -56,13 +56,14 @@ public class AddUrlGetAllUserAliasesTest {
         urls
       ).check((alias, url) -> {
         url = url.concat(".com");
-        dataService.addUrlAlias(new UrlAlias(alias, url, "vasya"));
-        for (UrlAlias urlAlias : dataService.getUserAliases("vasya")) {
+        assert(dataService.addUrlAlias(new UrlAlias(alias, url, "vasya")));
+        var allUserAliases = dataService.getUserAliases("vasya");
+        assert(allUserAliases.size() != 0);
+        for (UrlAlias urlAlias : allUserAliases) {
           if (!urlAlias.getAlias().equals(alias) || !urlAlias.getUrl().equals(url)) {
             return false;
           }
         }
-        urlService.deleteAlias(alias, "vasya");
         return true;
       });
   }
