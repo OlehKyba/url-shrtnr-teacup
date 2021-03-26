@@ -5,7 +5,6 @@ import edu.kpi.testcourse.dataservice.UrlAlias;
 import edu.kpi.testcourse.dataservice.User;
 import edu.kpi.testcourse.urlservice.UrlService;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
@@ -19,6 +18,8 @@ public class AddDeleteTests {
   @Inject DataService dataService;
   @Inject UrlService urlService;
 
+  //There are some troubles with addUrl method in both interfaces
+  //addUrl
   @Test
   void testUrlServiceAddUrlDeleteAlias_propertyBased(){
     dataService.clear();
@@ -28,7 +29,9 @@ public class AddDeleteTests {
         strings().basicLatinAlphabet().ofLengthBetween(1, 29), //alias
         strings().basicLatinAlphabet().ofLengthBetween(1, 40) //url
       ).check((alias, url) -> {
-      urlService.addUrl(alias, url, "aaa@bbb.com");
+        if (!urlService.addUrl(alias, url, "aaa@bbb.com")) {
+          return false;
+        }
       urlService.deleteAlias(alias, "aaa@bbb.com");
       return urlService.getUrl(alias) == null;
     });
@@ -43,7 +46,7 @@ public class AddDeleteTests {
         strings().basicLatinAlphabet().ofLengthBetween(1, 29), //alias
         strings().basicLatinAlphabet().ofLengthBetween(1, 40) //url
       ).check((alias, url) -> {
-      dataService.addUrlAlias(new UrlAlias(alias, url, "aaa@bbb.com"));
+      assert(dataService.addUrlAlias(new UrlAlias(alias, url, "aaa@bbb.com")));
       dataService.deleteUrlAlias(alias, "aaa@bbb.com");
       return dataService.getUrlAlias(alias) == null;
     });
