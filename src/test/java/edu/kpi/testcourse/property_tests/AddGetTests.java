@@ -6,16 +6,20 @@ import edu.kpi.testcourse.urlservice.AliasInfo;
 import edu.kpi.testcourse.urlservice.UrlService;
 import static org.quicktheories.generators.SourceDSL.strings;
 import io.micronaut.context.BeanContext;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import javax.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.quicktheories.QuickTheory.qt;
 
+@MicronautTest
 public class AddGetTests {
-  static DataService dataService = BeanContext.run().getBean(DataService.class);
-  static UrlService urlService = BeanContext.run().getBean(UrlService.class);
+  @Inject DataService dataService;
+  @Inject UrlService urlService;
 
-  @BeforeAll
-  static void beforeAll() {
+  @BeforeEach
+  void beforeEach() {
     dataService.clear();
     dataService.addUser(new User("jusovch", "j2202"));
   }
@@ -29,16 +33,19 @@ public class AddGetTests {
       ).check((alias, url) -> {
       url = url.concat(".com");
       urlService.addUrl(alias, url, "jusovch");
-      var allUserAliases = urlService.getUserAliases("jusovch");
-      for (AliasInfo urlAlias : allUserAliases) {
-        if (!urlAlias.alias().equals(alias) || !urlAlias.url().equals(url)) {
-          return false;
-        }
+      var gotUrl = urlService.getUrl("jusovch");
+      if (gotUrl == null) {
+        return false;
+      }
+      if (!gotUrl.equals(url)) {
+        return false;
       }
       urlService.deleteAlias(alias, "jusovch");
       return true;
     });
   }
+
+
 
   @Test
   void testDataServiceAddGet() {
@@ -49,11 +56,13 @@ public class AddGetTests {
       ).check((alias, url) -> {
       url = url.concat(".com");
       dataService.addUrlAlias(new UrlAlias(alias, url, "jusovch"));
-      for (UrlAlias urlAlias : dataService.getUserAliases("jusovch")) {
-        if (!urlAlias.getAlias().equals(alias) || !urlAlias.getUrl().equals(url)) {
-          return false;
-        }
+      var gotUrlAlias = dataService.getUrlAlias(alias);
+      if (gotUrlAlias == null) {
+        return false;
       }
+      if (!gotUrlAlias.getUrl().equals(url)) {
+        return false;
+        }
       dataService.deleteUrlAlias(alias, "jusovch");
       return true;
     });
