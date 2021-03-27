@@ -7,33 +7,49 @@ eval_env:
   JAVA_HOME: echo "${HOME}/.jdks/openjdk-15.0.2/"
 
 commands:
-  build:
+  build-python:
     description: Build python
-    cmd: docker build --tag stress-test .
+    cmd: docker build --tag reporter -f python/Dockerfile python
+
+  build-rust:
+    description: Build rust
+    cmd: cd rust && cargo build --release
+
+  build:
+    description: Build all
+    depends:
+      - build-python
+      - build-rust
+
+  ensure-directories:
+    description: create directories for data exchange
+    cmd:
+      mkdir -p .data
+      mkdir -p .report
 
   test-30-1:
     description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
-      docker run \
-        --net host \
-        --mount type=bind,source="$(pwd)/stress-test/.data",target="/tmp/data" \
-        --mount type=bind,source="$(pwd)/stress-test/.report",target="/tmp/report" \
-        stress-test python3 test.py
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 1 \
+        --out_dir stress-test/.data
       ./gradlew --stop
       rm -r .data/
 
   test-30-10:
-    description: Run 1 query per second for 30 seconds
+    description: Run 10 queries per second for 30 seconds
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
-      docker run \
-        --net host \
-        --mount type=bind,source="$(pwd)/stress-test/.data",target="/tmp/data" \
-        --mount type=bind,source="$(pwd)/stress-test/.report",target="/tmp/report" \
-        stress-test python3 test.py --rps 10
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 10 \
+        --out_dir stress-test/.data
       ./gradlew --stop
       rm -r .data/
 
@@ -42,11 +58,10 @@ commands:
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
-      docker run \
-        --net host \
-        --mount type=bind,source="$(pwd)/stress-test/.data",target="/tmp/data" \
-        --mount type=bind,source="$(pwd)/stress-test/.report",target="/tmp/report" \
-        stress-test python3 test.py --rps 25
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 25 \
+        --out_dir stress-test/.data
       ./gradlew --stop
       rm -r .data/
 
@@ -55,11 +70,10 @@ commands:
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
-      docker run \
-        --net host \
-        --mount type=bind,source="$(pwd)/stress-test/.data",target="/tmp/data" \
-        --mount type=bind,source="$(pwd)/stress-test/.report",target="/tmp/report" \
-        stress-test python3 test.py --rps 50
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 50 \
+        --out_dir stress-test/.data
       ./gradlew --stop
       rm -r .data/
 
@@ -68,11 +82,10 @@ commands:
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
-      docker run \
-        --net host \
-        --mount type=bind,source="$(pwd)/stress-test/.data",target="/tmp/data" \
-        --mount type=bind,source="$(pwd)/stress-test/.report",target="/tmp/report" \
-        stress-test python3 test.py --rps 100
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 100 \
+        --out_dir stress-test/.data
       ./gradlew --stop
       rm -r .data/
 
@@ -81,17 +94,17 @@ commands:
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
-      docker run \
-        --net host \
-        --mount type=bind,source="$(pwd)/stress-test/.data",target="/tmp/data" \
-        --mount type=bind,source="$(pwd)/stress-test/.report",target="/tmp/report" \
-        stress-test python3 test.py --rps 200
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 200 \
+        --out_dir stress-test/.data
       ./gradlew --stop
       rm -r .data/
 
   test:
     description: Gather all data
     depends:
+      - ensure-directories
       - test-30-1
       - test-30-10
       - test-30-25
