@@ -43,6 +43,8 @@ commands:
 
   test-30-10:
     description: Run 10 queries per second for 30 seconds
+    depends:
+      - build-rust
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
@@ -55,6 +57,8 @@ commands:
 
   test-30-25:
     description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
@@ -67,6 +71,8 @@ commands:
 
   test-30-50:
     description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
@@ -79,6 +85,8 @@ commands:
 
   test-30-100:
     description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
@@ -91,6 +99,8 @@ commands:
 
   test-30-200:
     description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
     cmd: |
       cd ..
       ./gradlew run& > /dev/null 2>&1
@@ -100,6 +110,16 @@ commands:
         --out_dir stress-test/.data
       ./gradlew --stop
       rm -r .data/
+
+  report:
+    description: Report existing data to html
+    depends:
+      - build-python
+    cmd: |
+      docker run \
+        --mount type=bind,source="$(pwd)/.data",target="/tmp/data" \
+        --mount type=bind,source="$(pwd)/.report",target="/tmp/report" \
+        reporter python3 report.py --dataDir=/tmp/data --outDir=/tmp/report
 
   test:
     description: Gather all data
@@ -111,6 +131,12 @@ commands:
       - test-30-50
       - test-30-100
       - test-30-200
+
+  run:
+    description: Run full flow
+    depends:
+      - test
+      - report
 
   clean:
     description: Remove experiments data
