@@ -42,3 +42,7 @@ local.properties
 
 # Cache of project
 .gradletasknamecache
+
+stress-test/.lets/*
+stress-test/.data/*
+stress-test/.report/*

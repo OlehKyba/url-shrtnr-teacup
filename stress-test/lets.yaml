@@ -1,0 +1,143 @@
+shell: /bin/sh
+
+env:
+  DOCKER_BUILDKIT: "1"
+
+eval_env:
+  JAVA_HOME: echo "${HOME}/.jdks/openjdk-15.0.2/"
+
+commands:
+  build-python:
+    description: Build python
+    cmd: docker build --tag reporter -f python/Dockerfile python
+
+  build-rust:
+    description: Build rust
+    cmd: cd rust && cargo build --release
+
+  build:
+    description: Build all
+    depends:
+      - build-python
+      - build-rust
+
+  ensure-directories:
+    description: create directories for data exchange
+    cmd:
+      mkdir -p .data
+      mkdir -p .report
+
+  test-30-1:
+    description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
+    cmd: |
+      cd ..
+      ./gradlew run& > /dev/null 2>&1
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 1 \
+        --out_dir stress-test/.data
+      ./gradlew --stop
+      rm -r .data/
+
+  test-30-10:
+    description: Run 10 queries per second for 30 seconds
+    depends:
+      - build-rust
+    cmd: |
+      cd ..
+      ./gradlew run& > /dev/null 2>&1
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 10 \
+        --out_dir stress-test/.data
+      ./gradlew --stop
+      rm -r .data/
+
+  test-30-25:
+    description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
+    cmd: |
+      cd ..
+      ./gradlew run& > /dev/null 2>&1
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 25 \
+        --out_dir stress-test/.data
+      ./gradlew --stop
+      rm -r .data/
+
+  test-30-50:
+    description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
+    cmd: |
+      cd ..
+      ./gradlew run& > /dev/null 2>&1
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 50 \
+        --out_dir stress-test/.data
+      ./gradlew --stop
+      rm -r .data/
+
+  test-30-100:
+    description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
+    cmd: |
+      cd ..
+      ./gradlew run& > /dev/null 2>&1
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 100 \
+        --out_dir stress-test/.data
+      ./gradlew --stop
+      rm -r .data/
+
+  test-30-200:
+    description: Run 1 query per second for 30 seconds
+    depends:
+      - build-rust
+    cmd: |
+      cd ..
+      ./gradlew run& > /dev/null 2>&1
+      ./stress-test/rust/target/release/stress-test \
+        --duration 30 \
+        --rps 200 \
+        --out_dir stress-test/.data
+      ./gradlew --stop
+      rm -r .data/
+
+  report:
+    description: Report existing data to html
+    depends:
+      - build-python
+    cmd: |
+      docker run \
+        --mount type=bind,source="$(pwd)/.data",target="/tmp/data" \
+        --mount type=bind,source="$(pwd)/.report",target="/tmp/report" \
+        reporter python3 report.py --dataDir=/tmp/data --outDir=/tmp/report
+
+  test:
+    description: Gather all data
+    depends:
+      - ensure-directories
+      - test-30-1
+      - test-30-10
+      - test-30-25
+      - test-30-50
+      - test-30-100
+      - test-30-200
+
+  run:
+    description: Run full flow
+    depends:
+      - test
+      - report
+
+  clean:
+    description: Remove experiments data
+    cmd: rm -r .data/
